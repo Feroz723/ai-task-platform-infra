@@ -1,0 +1,38 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ai-task-platform
+
+resources:
+  - namespace.yaml
+  - ingress.yaml
+  - mongodb/deployment.yaml
+  - mongodb/service.yaml
+  - mongodb/pvc.yaml
+  - redis/deployment.yaml
+  - redis/service.yaml
+  - api/deployment.yaml
+  - api/service.yaml
+  - worker/deployment.yaml
+  - web/deployment.yaml
+  - web/service.yaml
+
+configMapGenerator:
+  - name: ai-task-platform-config
+    literals:
+      - NODE_ENV=production
+      - CLIENT_URL=http://localhost:3000
+      - NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+      - REDIS_URL=redis://redis:6379
+      - MONGODB_DATABASE=ai-task-platform
+    options:
+      disableNameSuffixHash: true
+
+secretGenerator:
+  - name: ai-task-platform-secrets
+    literals:
+      - JWT_SECRET=change-me-in-production
+      - MONGODB_URI=mongodb://mongodb:27017/ai-task-platform
+      - REDIS_PASSWORD=
+    options:
+      disableNameSuffixHash: true

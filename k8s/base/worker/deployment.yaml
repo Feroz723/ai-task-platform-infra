@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: worker
+  namespace: ai-task-platform
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: worker
+  template:
+    metadata:
+      labels:
+        app: worker
+    spec:
+      containers:
+        - name: worker
+          image: ai-task-platform-worker:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: WORKER_REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-task-platform-config
+                  key: REDIS_URL
+            - name: WORKER_MONGO_URI
+              valueFrom:
+                secretKeyRef:
+                  name: ai-task-platform-secrets
+                  key: MONGODB_URI
+            - name: WORKER_MONGO_DB
+              valueFrom:
+                configMapKeyRef:
+                  name: ai-task-platform-config
+                  key: MONGODB_DATABASE
+            - name: WORKER_LOG_LEVEL
+              value: INFO
+            - name: WORKER_POLL_INTERVAL
+              value: "1.0"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            exec:
+              command:
+                - python
+                - "-c"
+                - |
+                  import os, redis
+                  r = redis.Redis.from_url(os.environ.get("WORKER_REDIS_URL", "redis://redis:6379"))
+                  r.ping()
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - python
+                - "-c"
+                - |
+                  import os, redis
+                  r = redis.Redis.from_url(os.environ.get("WORKER_REDIS_URL", "redis://redis:6379"))
+                  r.ping()
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
