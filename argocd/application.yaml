@@ -6,7 +6,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-org/ai-task-platform-infra
+    repoURL: https://github.com/Feroz723/ai-task-platform-infra
     targetRevision: main
     path: k8s/overlays/production
   destination:
